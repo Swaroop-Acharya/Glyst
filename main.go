@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 // Define a home handler function which writes a byte slice containing
@@ -13,20 +14,32 @@ func home(w http.ResponseWriter, r *http.Request) {
 }
 
 func glystView(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Display a specific Glyst"))
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil || id < 1 {
+		http.NotFound(w, r)
+		return
+	}
+
+	msg := fmt.Sprintf("Display a specific Glyst with ID: %d", id)
+	w.Write([]byte(msg))
 }
 
 func glystCreate(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Display a form for creating a specific Glyst"))
 }
 
+func glystCreatePost(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Save a new snippet"))
+}
+
 func main() {
 	// Use the http.NewServeMux() function to initialize a new servemux, then
 	// register the home function as the handler for the "/" URL pattern.
 	mux := http.NewServeMux()
-	mux.HandleFunc("/{$}", home)
-	mux.HandleFunc("/glyst/view", glystView)
-	mux.HandleFunc("/glyst/create", glystCreate)
+	mux.HandleFunc("GET /{$}", home)
+	mux.HandleFunc("GET /glyst/view/{id}", glystView)
+	mux.HandleFunc("GET /glyst/create", glystCreate)
+	mux.HandleFunc("POST /glyst/create", glystCreatePost)
 
 	// Print a log message to say that the server is starting.
 	log.Print("starting server on: 4000")
