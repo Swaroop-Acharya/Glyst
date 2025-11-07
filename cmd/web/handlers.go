@@ -3,14 +3,13 @@ package main
 import (
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"strconv"
 )
 
 // Define a home handler function which writes a byte slice containing
 // "Hello from Snippetbox" as the response body.
-func home(w http.ResponseWriter, r *http.Request) {
+func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Server", "Go")
 
 	// Initialize a slice containing the paths to the two files. It's important
@@ -26,20 +25,20 @@ func home(w http.ResponseWriter, r *http.Request) {
 	// of the files slice as variadic arguments.
 	ts, err := template.ParseFiles(files...)
 	if err != nil {
-		log.Print(err.Error())
+		app.logger.Error(err.Error(), "method", r.Method, "uri", r.URL.RequestURI())
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
 	err = ts.ExecuteTemplate(w, "base", nil)
 	if err != nil {
-		log.Print(err.Error())
+		app.logger.Error(err.Error(), "method", r.Method, "uri", r.URL.RequestURI())
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 }
 
-func glystView(w http.ResponseWriter, r *http.Request) {
+func (app *application) glystView(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil || id < 1 {
 		http.NotFound(w, r)
@@ -48,11 +47,11 @@ func glystView(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Display a specific Glyst with ID: %d", id)
 }
 
-func glystCreate(w http.ResponseWriter, r *http.Request) {
+func (app *application) glystCreate(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Display a form for creating a specific Glyst"))
 }
 
-func glystCreatePost(w http.ResponseWriter, r *http.Request) {
+func (app *application) glystCreatePost(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte("Save a new snippet"))
 }
