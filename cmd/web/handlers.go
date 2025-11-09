@@ -26,14 +26,14 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	ts, err := template.ParseFiles(files...)
 	if err != nil {
 		app.logger.Error(err.Error(), "method", r.Method, "uri", r.URL.RequestURI())
-		app.serverError(w,r,err)	
+		app.serverError(w, r, err)
 		return
 	}
 
 	err = ts.ExecuteTemplate(w, "base", nil)
 	if err != nil {
 		app.logger.Error(err.Error(), "method", r.Method, "uri", r.URL.RequestURI())
-		app.serverError(w,r,err)	
+		app.serverError(w, r, err)
 		return
 	}
 }
@@ -52,6 +52,15 @@ func (app *application) glystCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) glystCreatePost(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("Save a new snippet"))
+
+	title := "My Books"
+	content := "I like to read books"
+	expires := 10
+
+	id, err := app.glysts.Insert(title, content, expires)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+	http.Redirect(w, r, fmt.Sprintf("/glyst/view/%d", id), http.StatusSeeOther)
 }
