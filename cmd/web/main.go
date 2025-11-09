@@ -3,14 +3,17 @@ package main
 import (
 	"database/sql"
 	"flag"
+	"glyst/internal/models"
 	"log/slog"
 	"net/http"
 	"os"
+
 	_ "github.com/go-sql-driver/mysql"
 )
 
 type application struct {
 	logger *slog.Logger
+	glysts *models.GlystModel
 }
 
 
@@ -58,6 +61,7 @@ func main() {
 	// dependencies (for now, just the structured logger).
 	app := &application{
 		logger: logger,
+		glysts: &models.GlystModel{DB: db},
 	}
 
 	// Print a log message to say that the server is starting.
