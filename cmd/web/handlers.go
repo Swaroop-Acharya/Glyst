@@ -1,7 +1,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"glyst/internal/models"
 	"html/template"
 	"net/http"
 	"strconv"
@@ -11,6 +13,17 @@ import (
 // "Hello from Snippetbox" as the response body.
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Server", "Go")
+
+	glysts, err := app.glysts.Latest()
+
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	for _, glyst := range glysts {
+		fmt.Fprintf(w, "%+v", glyst)
+	}
 
 	// Initialize a slice containing the paths to the two files. It's important
 	// to note that the file containing our base template must be the *first*
@@ -44,7 +57,22 @@ func (app *application) glystView(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	fmt.Fprintf(w, "Display a specific Glyst with ID: %d", id)
+
+	// Use the SnippetModel's Get() method to retrieve the data for a
+	// specific record based on its ID. If no matching record is found,
+	// return a 404 Not Found response.
+	glyst, err := app.glysts.Get(id)
+
+	if err != nil {
+		if errors.Is(err, models.ErrNoRecord) {
+			http.NotFound(w, r)
+		} else {
+			app.serverError(w, r, err)
+		}
+		return
+	}
+	// Write the snippet data as a plain-text HTTP response body.
+	fmt.Fprintf(w, "%+v", glyst)
 }
 
 func (app *application) glystCreate(w http.ResponseWriter, r *http.Request) {
