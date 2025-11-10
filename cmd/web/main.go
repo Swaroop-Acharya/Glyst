@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"flag"
 	"glyst/internal/models"
+	"html/template"
 	"log/slog"
 	"net/http"
 	"os"
@@ -14,6 +15,7 @@ import (
 type application struct {
 	logger *slog.Logger
 	glysts *models.GlystModel
+	templateCache map[string]*template.Template
 }
 
 
@@ -57,11 +59,21 @@ func main() {
 	defer db.Close()
 
 
+	templateCache, err := newTemplateCache()
+
+	if err!=nil{
+	 	logger.Error(err.Error())	
+		os.Exit(1)	
+	}
+
+
+
 	// Initialize a new instance of our application struct, containing the
 	// dependencies (for now, just the structured logger).
 	app := &application{
 		logger: logger,
 		glysts: &models.GlystModel{DB: db},
+		templateCache: templateCache,	
 	}
 
 	// Print a log message to say that the server is starting.
