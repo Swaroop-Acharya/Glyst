@@ -4,6 +4,7 @@ import (
 	"glyst/internal/models"
 	"html/template"
 	"path/filepath"
+	"time"
 )
 
 // Define a templateData type to act as the holding structure for
@@ -11,8 +12,17 @@ import (
 // At the moment it only contains one field, but we'll add more
 // to it as the build progresses.
 type templateData struct {
-	Glyst  models.Glyst
-	Glysts []models.Glyst
+	CurrentYear int
+	Glyst       models.Glyst
+	Glysts      []models.Glyst
+}
+
+func humanDate(t time.Time) string {
+	return t.Format("02 Jan 2006 at 15:04")
+}
+
+var functions = template.FuncMap{
+	"humanDate": humanDate,
 }
 
 func newTemplateCache() (map[string]*template.Template, error) {
@@ -34,21 +44,22 @@ func newTemplateCache() (map[string]*template.Template, error) {
 		// Extract the file name (like 'home.tmpl') from the full filepath
 		// and assign it to the name variable.
 		name := filepath.Base(page)
-
+		
+		// Create a new template set, register functions first, then parse files.
 		// Parse the files into a template set.
-		ts, err := template.ParseFiles("./ui/html/base.tmpl")
+		ts, err := template.New(name).Funcs(functions).ParseFiles("./ui/html/base.tmpl")
 		if err != nil {
 			return nil, err
 		}
 
 		// Call ParseGlob() *on this template set* to add any partials.
-		ts, err = template.ParseGlob("./ui/html/partials/*.tmpl")
+		ts, err = ts.ParseGlob("./ui/html/partials/*.tmpl")
 		if err != nil {
 			return nil, err
 		}
-		
+
 		// Call ParseFiles() *on this template set* to add the page template.
-		ts, err = template.ParseFiles(page)
+		ts, err = ts.ParseFiles(page)
 		if err != nil {
 			return nil, err
 		}

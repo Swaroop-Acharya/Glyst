@@ -20,11 +20,10 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.render(w, r, http.StatusOK, "home.tmpl", templateData{
-		Glysts: glysts,
-	})
+	data := app.newTemplateData(r)
+	data.Glysts = glysts
+	app.render(w, r, http.StatusOK, "home.tmpl", data)
 }
-
 func (app *application) glystView(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil || id < 1 {
@@ -40,14 +39,15 @@ func (app *application) glystView(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, models.ErrNoRecord) {
 			http.NotFound(w, r)
 		} else {
-		app.serverError(w, r, err)
+			app.serverError(w, r, err)
 		}
 		return
 	}
 
-	app.render(w, r, http.StatusOK, "view.tmpl", templateData{
-		Glyst: glyst,
-	})
+	data := app.newTemplateData(r)
+	data.Glyst = glyst
+
+	app.render(w, r, http.StatusOK, "view.tmpl", data)
 }
 
 func (app *application) glystCreate(w http.ResponseWriter, r *http.Request) {
