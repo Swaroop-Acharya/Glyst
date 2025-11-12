@@ -17,5 +17,5 @@ func (app *application) routes() http.Handler {
 	mux.HandleFunc("GET /glyst/view/{id}", app.glystView)
 	mux.HandleFunc("GET /glyst/create", app.glystCreate)
 	mux.HandleFunc("POST /glyst/create", app.glystCreatePost)
-	return app.logRequest(commonHeader(mux))
+	return app.recoverPanic(app.logRequest(commonHeader(mux)))
 }
