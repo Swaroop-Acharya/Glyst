@@ -12,8 +12,6 @@ import (
 // Define a home handler function which writes a byte slice containing
 // "Hello from Snippetbox" as the response body.
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Server", "Go")
-
 	glysts, err := app.glysts.Latest()
 	if err != nil {
 		app.serverError(w, r, err)

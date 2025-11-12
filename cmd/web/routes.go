@@ -1,8 +1,10 @@
 package main
 
-import "net/http"
+import (
+	"net/http"
+)
 
-func (app *application) routes() *http.ServeMux {
+func (app *application) routes() http.Handler {
 
 	// Use the http.NewServeMux() function to initialize a new servemux, then
 	// register the home function as the handler for the "/" URL pattern.
@@ -15,5 +17,5 @@ func (app *application) routes() *http.ServeMux {
 	mux.HandleFunc("GET /glyst/view/{id}", app.glystView)
 	mux.HandleFunc("GET /glyst/create", app.glystCreate)
 	mux.HandleFunc("POST /glyst/create", app.glystCreatePost)
-	return mux
+	return app.logRequest(commonHeader(mux))
 }
