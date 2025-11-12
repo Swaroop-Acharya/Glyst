@@ -2,6 +2,8 @@ package main
 
 import (
 	"net/http"
+
+	"github.com/justinas/alice"
 )
 
 func (app *application) routes() http.Handler {
@@ -17,5 +19,11 @@ func (app *application) routes() http.Handler {
 	mux.HandleFunc("GET /glyst/view/{id}", app.glystView)
 	mux.HandleFunc("GET /glyst/create", app.glystCreate)
 	mux.HandleFunc("POST /glyst/create", app.glystCreatePost)
-	return app.recoverPanic(app.logRequest(commonHeader(mux)))
+// Create a middleware chain containing our 'standard' middleware
+// which will be used for every request our application receives.
+
+	standard:= alice.New(app.recoverPanic,app.logRequest,commonHeader)
+
+	// Return the 'standard' middleware chain followed by the servemux.
+	return standard.Then(mux)
 }
