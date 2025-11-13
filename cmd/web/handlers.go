@@ -22,6 +22,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	data.Glysts = glysts
 	app.render(w, r, http.StatusOK, "home.tmpl", data)
 }
+
 func (app *application) glystView(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil || id < 1 {
@@ -49,15 +50,31 @@ func (app *application) glystView(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) glystCreate(w http.ResponseWriter, r *http.Request) {
-	data:= app.newTemplateData(r)
-	app.render(w,r,http.StatusOK,"create.tmpl",data)
-
+	data := app.newTemplateData(r)
+	app.render(w, r, http.StatusOK, "create.tmpl", data)
 }
 
 func (app *application) glystCreatePost(w http.ResponseWriter, r *http.Request) {
-	title := "My Books"
-	content := "I like to read books"
-	expires := 10
+	
+	// First we call r.ParseForm() which adds any data in POST request bodies
+	// to the r.PostForm map. This also works in the same way for PUT and PATCH
+	// requests.
+	err := r.ParseForm()
+	if err != nil {
+		app.clientError(w, http.StatusBadGateway)
+		return
+	}
+
+	// Use the r.PostForm.Get() method to retrieve the title and content
+	// from the r.PostForm map.
+	title := r.PostForm.Get("title")
+	content := r.PostForm.Get("content")
+
+	expires, err := strconv.Atoi(r.PostForm.Get("expires"))
+	if err != nil {
+		app.clientError(w, http.StatusBadGateway)
+		return
+	}
 
 	id, err := app.glysts.Insert(title, content, expires)
 	if err != nil {
