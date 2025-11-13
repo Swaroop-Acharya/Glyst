@@ -11,6 +11,13 @@ import (
 	"glyst/internal/models"
 )
 
+type glystCreateForm struct {
+	Title       string
+	Content     string
+	Expires     int
+	FieldErrors map[string]string
+}
+
 // Define a home handler function which writes a byte slice containing
 // "Hello from Snippetbox" as the response body.
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
@@ -53,15 +60,21 @@ func (app *application) glystView(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) glystCreate(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
+
+	// Initialize a new snippetCreateForm instance and pass it to the template.
+	// Notice how this is also a great opportunity to set any default or
+	// 'initial' values for the form --- here we set the initial value for the
+	// snippet expiry to 365 days.
+	data.Form = glystCreateForm{
+		Expires: 365,
+	}
 	app.render(w, r, http.StatusOK, "create.tmpl", data)
 }
 
 func (app *application) glystCreatePost(w http.ResponseWriter, r *http.Request) {
-	
 	// First we call r.ParseForm() which adds any data in POST request bodies
 	// to the r.PostForm map. This also works in the same way for PUT and PATCH
 	// requests.
-
 	err := r.ParseForm()
 	if err != nil {
 		app.clientError(w, http.StatusBadGateway)
@@ -79,29 +92,35 @@ func (app *application) glystCreatePost(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	fieldErrors:= make(map[string]string)
-
-
-	if strings.TrimSpace(title) == "" {
-		fieldErrors["title"]= "This field cannot be blank"
-	}else if utf8.RuneCountInString(title) > 100{
-		fieldErrors["title"]= "This field cannot be more than 100 characters long"
+	form := glystCreateForm{
+		Title:       title,
+		Content:     content,
+		Expires:     expires,
+		FieldErrors: map[string]string{},
 	}
 
-	if strings.TrimSpace(content)==""{
-		fieldErrors["content"]= "This field cannot be blank"
+	if strings.TrimSpace(form.Title) == "" {
+		form.FieldErrors["title"] = "This field cannot be blank"
+	} else if utf8.RuneCountInString(title) > 100 {
+		form.FieldErrors["title"] = "This field cannot be more than 100 characters long"
 	}
 
-	if expires!=1 && expires!=7 && expires!=365{
-		fieldErrors["expires"]= "This field must be equal to 1, 7 or 365"
+	if strings.TrimSpace(form.Content) == "" {
+		form.FieldErrors["content"] = "This field cannot be blank"
 	}
 
-	if len(fieldErrors) > 0 {
-		fmt.Fprint(w,fieldErrors)	
+	if form.Expires != 1 && form.Expires != 7 && form.Expires != 365 {
+		form.FieldErrors["expires"] = "This field must be equal to 1, 7 or 365"
+	}
+
+	if len(form.FieldErrors) > 0 {
+		data := app.newTemplateData(r)
+		data.Form = form
+		app.render(w, r, http.StatusUnprocessableEntity, "create.tmpl", data)
 		return
 	}
 
-	id, err := app.glysts.Insert(title, content, expires)
+	id, err := app.glysts.Insert(form.Title, form.Content, form.Expires)
 	if err != nil {
 		app.serverError(w, r, err)
 		return

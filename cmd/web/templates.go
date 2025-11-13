@@ -15,6 +15,7 @@ type templateData struct {
 	CurrentYear int
 	Glyst       models.Glyst
 	Glysts      []models.Glyst
+	Form any
 }
 
 func humanDate(t time.Time) string {
