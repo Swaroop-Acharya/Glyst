@@ -49,7 +49,9 @@ func (app *application) glystView(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) glystCreate(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Display a form for creating a specific Glyst"))
+	data:= app.newTemplateData(r)
+	app.render(w,r,http.StatusOK,"create.tmpl",data)
+
 }
 
 func (app *application) glystCreatePost(w http.ResponseWriter, r *http.Request) {
