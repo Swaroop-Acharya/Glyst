@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/go-playground/form/v4"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -16,6 +17,7 @@ type application struct {
 	logger *slog.Logger
 	glysts *models.GlystModel
 	templateCache map[string]*template.Template
+	formDecoder *form.Decoder
 }
 
 
@@ -65,15 +67,17 @@ func main() {
 	 	logger.Error(err.Error())	
 		os.Exit(1)	
 	}
-
-
+	
+	// inita decoder instance
+	formDecoder := form.NewDecoder()
 
 	// Initialize a new instance of our application struct, containing the
 	// dependencies (for now, just the structured logger).
 	app := &application{
 		logger: logger,
 		glysts: &models.GlystModel{DB: db},
-		templateCache: templateCache,	
+		templateCache: templateCache,
+		formDecoder: formDecoder,
 	}
 
 	// Print a log message to say that the server is starting.

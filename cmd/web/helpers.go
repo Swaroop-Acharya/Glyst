@@ -2,16 +2,47 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"net/http"
 	"runtime/debug"
 	"time"
+
+	"github.com/go-playground/form/v4"
 )
+
+func (app *application) decodePostForm(r *http.Request, dst any) error {
+	// First we call r.ParseForm() which adds any data in POST request bodies
+	// to the r.PostForm map. This also works in the same way for PUT and PATCH
+	// requests.
+	err := r.ParseForm()
+	if err != nil {
+		return err
+	}
+
+	// Call the Decode() method of the form decoder, passing in the current
+	// request and *a pointer* to our snippetCreateForm struct. This will
+	// essentially fill our struct with the relevant values from the HTML form.
+	// If there is a problem, we return a 400 Bad Request response to the client.
+	err = app.formDecoder.Decode(&dst, r.PostForm)
+	if err != nil {
+
+		// If we try to use an invalid target destination, the Decode() method
+		// will return an error with the type *form.InvalidDecoderError.We use
+		// errors.As() to check for this and raise a panic rather than returning
+		// the error
+		var invalidDecoderError *form.InvalidDecoderError
+		if errors.As(err, &invalidDecoderError) {
+			panic(err)
+		}
+		return err
+	}
+	return nil
+}
 
 // The serverError helper writes a log entry at Error level (including the request
 // method and URI as attributes), then sends a generic 500 Internal Server Error
 // response to the user.
-
 func (app *application) serverError(w http.ResponseWriter, r *http.Request, e error) {
 	var (
 		method = r.Method
@@ -33,7 +64,6 @@ func (app *application) clientError(w http.ResponseWriter, status int) {
 }
 
 func (app *application) render(w http.ResponseWriter, r *http.Request, status int, page string, data templateData) {
-
 	// Retrieve the appropriate template set from the cache based on the page
 	// name (like 'home.tmpl'). If no entry exists in the cache with the
 	// provided name, then create a new error and call the serverError() helper
@@ -49,7 +79,7 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 	// init buffer
 	buf := new(bytes.Buffer)
 
-	// Write the template to buffer, instead of straight to the 
+	// Write the template to buffer, instead of straight to the
 	// http.ResponseWriter. If there's an erro, call our ServerError() helper & return
 	err := ts.ExecuteTemplate(buf, "base", data)
 	if err != nil {
@@ -61,8 +91,7 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 	buf.WriteTo(w)
 }
 
-
-func (app *application) newTemplateData(r *http.Request) templateData{
+func (app *application) newTemplateData(r *http.Request) templateData {
 	return templateData{
 		CurrentYear: time.Now().Year(),
 	}

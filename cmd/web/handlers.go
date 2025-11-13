@@ -11,10 +11,10 @@ import (
 )
 
 type glystCreateForm struct {
-	Title   string
-	Content string
-	Expires int
-	validator.Validator
+	Title               string `form:"title"`
+	Content             string `form:"content"`
+	Expires             int    `form:"expires"`
+	validator.Validator `form:"-"`
 }
 
 // Define a home handler function which writes a byte slice containing
@@ -71,30 +71,12 @@ func (app *application) glystCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) glystCreatePost(w http.ResponseWriter, r *http.Request) {
-	// First we call r.ParseForm() which adds any data in POST request bodies
-	// to the r.PostForm map. This also works in the same way for PUT and PATCH
-	// requests.
-	err := r.ParseForm()
+	var form glystCreateForm
+
+	err := app.decodePostForm(r, &form)
 	if err != nil {
-		app.clientError(w, http.StatusBadGateway)
+		app.clientError(w, http.StatusBadRequest)
 		return
-	}
-
-	// Use the r.PostForm.Get() method to retrieve the title and content
-	// from the r.PostForm map.
-	title := r.PostForm.Get("title")
-	content := r.PostForm.Get("content")
-
-	expires, err := strconv.Atoi(r.PostForm.Get("expires"))
-	if err != nil {
-		app.clientError(w, http.StatusBadGateway)
-		return
-	}
-
-	form := glystCreateForm{
-		Title:   title,
-		Content: content,
-		Expires: expires,
 	}
 
 	// Because the Validator struct is embedded by the snippetCreateForm struct,
