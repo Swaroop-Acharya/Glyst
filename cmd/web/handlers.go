@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
+	"unicode/utf8"
 
 	"glyst/internal/models"
 )
@@ -59,6 +61,7 @@ func (app *application) glystCreatePost(w http.ResponseWriter, r *http.Request) 
 	// First we call r.ParseForm() which adds any data in POST request bodies
 	// to the r.PostForm map. This also works in the same way for PUT and PATCH
 	// requests.
+
 	err := r.ParseForm()
 	if err != nil {
 		app.clientError(w, http.StatusBadGateway)
@@ -73,6 +76,28 @@ func (app *application) glystCreatePost(w http.ResponseWriter, r *http.Request) 
 	expires, err := strconv.Atoi(r.PostForm.Get("expires"))
 	if err != nil {
 		app.clientError(w, http.StatusBadGateway)
+		return
+	}
+
+	fieldErrors:= make(map[string]string)
+
+
+	if strings.TrimSpace(title) == "" {
+		fieldErrors["title"]= "This field cannot be blank"
+	}else if utf8.RuneCountInString(title) > 100{
+		fieldErrors["title"]= "This field cannot be more than 100 characters long"
+	}
+
+	if strings.TrimSpace(content)==""{
+		fieldErrors["content"]= "This field cannot be blank"
+	}
+
+	if expires!=1 && expires!=7 && expires!=365{
+		fieldErrors["expires"]= "This field must be equal to 1, 7 or 365"
+	}
+
+	if len(fieldErrors) > 0 {
+		fmt.Fprint(w,fieldErrors)	
 		return
 	}
 
