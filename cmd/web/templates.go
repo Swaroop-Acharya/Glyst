@@ -16,6 +16,7 @@ type templateData struct {
 	Glyst       models.Glyst
 	Glysts      []models.Glyst
 	Form any
+	Flash string
 }
 
 func humanDate(t time.Time) string {

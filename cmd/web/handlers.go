@@ -53,7 +53,6 @@ func (app *application) glystView(w http.ResponseWriter, r *http.Request) {
 
 	data := app.newTemplateData(r)
 	data.Glyst = glyst
-
 	app.render(w, r, http.StatusOK, "view.tmpl", data)
 }
 
@@ -91,7 +90,7 @@ func (app *application) glystCreatePost(w http.ResponseWriter, r *http.Request) 
 	form.CheckField(validator.NotBlank(form.Content), "content", "This field cannot be blank")
 	form.CheckField(validator.PermittedValue(form.Expires, 1, 7, 365), "expires", "This field must be equal to 1, 7 or 365")
 
-	if len(form.FieldErrors) > 0 {
+	if !form.Valid() {
 		data := app.newTemplateData(r)
 		data.Form = form
 		app.render(w, r, http.StatusUnprocessableEntity, "create.tmpl", data)
@@ -103,5 +102,10 @@ func (app *application) glystCreatePost(w http.ResponseWriter, r *http.Request) 
 		app.serverError(w, r, err)
 		return
 	}
+
+	// Use the Put() method to add a string value ("Snippet successfully
+	// created!") and the corresponding key ("flash") to the session data.
+	app.sessonManger.Put(r.Context(), "flash", "Snippet successfully created")
+
 	http.Redirect(w, r, fmt.Sprintf("/glyst/view/%d", id), http.StatusSeeOther)
 }

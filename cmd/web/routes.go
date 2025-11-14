@@ -7,7 +7,6 @@ import (
 )
 
 func (app *application) routes() http.Handler {
-
 	// Use the http.NewServeMux() function to initialize a new servemux, then
 	// register the home function as the handler for the "/" URL pattern.
 	mux := http.NewServeMux()
@@ -15,14 +14,24 @@ func (app *application) routes() http.Handler {
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 
 	mux.Handle("GET /static/", http.StripPrefix("/static", fileServer))
-	mux.HandleFunc("GET /{$}", app.home)
-	mux.HandleFunc("GET /glyst/view/{id}", app.glystView)
-	mux.HandleFunc("GET /glyst/create", app.glystCreate)
-	mux.HandleFunc("POST /glyst/create", app.glystCreatePost)
-// Create a middleware chain containing our 'standard' middleware
-// which will be used for every request our application receives.
 
-	standard:= alice.New(app.recoverPanic,app.logRequest,commonHeader)
+	// Create a new middleware chain containing the middleware specific to our
+	// dynamic application routes. For now, this chain will only contain the
+	// LoadAndSave session middleware but we'll add more to it later.
+	dynamic := alice.New(app.sessonManger.LoadAndSave)
+
+	// Update these routes to use the new dynamic middleware chain followed by
+	// the appropriate handler function. Note that because the alice ThenFunc()
+	// method returns a http.Handler (rather than a http.HandlerFunc) we also
+	// need to switch to registering the route using the mux.Handle() method.
+	mux.Handle("GET /{$}", dynamic.ThenFunc(app.home))
+	mux.Handle("GET /glyst/view/{id}", dynamic.ThenFunc(app.glystView))
+	mux.Handle("GET /glyst/create", dynamic.ThenFunc(app.glystCreate))
+	mux.Handle("POST /glyst/create", dynamic.ThenFunc(app.glystCreatePost))
+
+	// Create a middleware chain containing our 'standard' middleware
+	// which will be used for every request our application receives.
+	standard := alice.New(app.recoverPanic, app.logRequest, commonHeader)
 
 	// Return the 'standard' middleware chain followed by the servemux.
 	return standard.Then(mux)
