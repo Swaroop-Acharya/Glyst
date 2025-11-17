@@ -21,6 +21,7 @@ import (
 type application struct {
 	logger        *slog.Logger
 	glysts        *models.GlystModel
+	users         *models.UserModel
 	templateCache map[string]*template.Template
 	formDecoder   *form.Decoder
 	sessonManger  *scs.SessionManager
@@ -83,6 +84,7 @@ func main() {
 	app := &application{
 		logger:        logger,
 		glysts:        &models.GlystModel{DB: db},
+		users: &models.UserModel{DB:db},
 		templateCache: templateCache,
 		formDecoder:   formDecoder,
 		sessonManger:  sessionManger,
@@ -96,12 +98,12 @@ func main() {
 	}
 
 	srv := &http.Server{
-		Addr:     *addr,
-		Handler:  app.routes(),
-		ErrorLog: slog.NewLogLogger(logger.Handler(), slog.LevelError),
-		TLSConfig: tlsConfig,
-		IdleTimeout: time.Minute,
-		ReadTimeout: 5 * time.Second,
+		Addr:         *addr,
+		Handler:      app.routes(),
+		ErrorLog:     slog.NewLogLogger(logger.Handler(), slog.LevelError),
+		TLSConfig:    tlsConfig,
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
 
