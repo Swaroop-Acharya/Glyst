@@ -59,7 +59,7 @@ func main() {
 	}
 
 	defer db.Close()
-
+ 
 	templateCache, err := newTemplateCache()
 	if err != nil {
 		logger.Error(err.Error())
@@ -96,7 +96,7 @@ func main() {
 		ErrorLog: slog.NewLogLogger(logger.Handler(),slog.LevelError),
 	}
 
-	err = srv.ListenAndServe()
+	err = srv.ListenAndServeTLS("./tls/cert.pem","./tls/key.pem")
 	if err != nil {
 		logger.Error("Server error", "err", err.Error())
 		os.Exit(1)
