@@ -109,3 +109,19 @@ func (app *application) glystCreatePost(w http.ResponseWriter, r *http.Request) 
 
 	http.Redirect(w, r, fmt.Sprintf("/glyst/view/%d", id), http.StatusSeeOther)
 }
+
+func (app *application) userSignup(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Display user signup form")
+}
+
+func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Create a new user")
+}
+
+func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Display user login form")
+}
+
+func (app *application) userLogoutPost(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "logout the user")
+}

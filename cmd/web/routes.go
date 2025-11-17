@@ -29,6 +29,11 @@ func (app *application) routes() http.Handler {
 	mux.Handle("GET /glyst/create", dynamic.ThenFunc(app.glystCreate))
 	mux.Handle("POST /glyst/create", dynamic.ThenFunc(app.glystCreatePost))
 
+	mux.Handle("GET /user/signup", dynamic.ThenFunc(app.userSignup))
+	mux.Handle("POST /user/signup", dynamic.ThenFunc(app.userSignupPost))
+	mux.Handle("GET /user/login", dynamic.ThenFunc(app.userLoginPost))
+	mux.Handle("POST /user/login", dynamic.ThenFunc(app.userLogoutPost))
+
 	// Create a middleware chain containing our 'standard' middleware
 	// which will be used for every request our application receives.
 	standard := alice.New(app.recoverPanic, app.logRequest, commonHeader)
