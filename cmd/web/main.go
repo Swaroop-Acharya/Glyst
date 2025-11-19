@@ -24,7 +24,7 @@ type application struct {
 	users         *models.UserModel
 	templateCache map[string]*template.Template
 	formDecoder   *form.Decoder
-	sessonManger  *scs.SessionManager
+	sessionManger  *scs.SessionManager
 }
 
 func openDB(dsn string) (*sql.DB, error) {
@@ -87,7 +87,7 @@ func main() {
 		users: &models.UserModel{DB:db},
 		templateCache: templateCache,
 		formDecoder:   formDecoder,
-		sessonManger:  sessionManger,
+		sessionManger:  sessionManger,
 	}
 
 	// Print a log message to say that the server is starting.

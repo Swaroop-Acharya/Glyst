@@ -24,6 +24,12 @@ type userSignupForm struct {
 	validator.Validator `form:"-"`
 }
 
+type userLoginForm struct {
+	Email               string `form:"email"`
+	Password            string `form:"password"`
+	validator.Validator `form:"-"`
+}
+
 // Define a home handler function which writes a byte slice containing
 // "Hello from Snippetbox" as the response body.
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
@@ -112,7 +118,7 @@ func (app *application) glystCreatePost(w http.ResponseWriter, r *http.Request) 
 
 	// Use the Put() method to add a string value ("Snippet successfully
 	// created!") and the corresponding key ("flash") to the session data.
-	app.sessonManger.Put(r.Context(), "flash", "Snippet successfully created")
+	app.sessionManger.Put(r.Context(), "flash", "Snippet successfully created")
 
 	http.Redirect(w, r, fmt.Sprintf("/glyst/view/%d", id), http.StatusSeeOther)
 }
@@ -161,12 +167,56 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.sessonManger.Put(r.Context(), "flash", "Your signup was successful. Please log in.")
+	app.sessionManger.Put(r.Context(), "flash", "Your signup was successful. Please log in.")
 	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 }
 
+func (app *application) userLogin(w http.ResponseWriter, r *http.Request) {
+	data := app.newTemplateData(r)
+	data.Form = userLoginForm{}
+	app.render(w, r, http.StatusOK, "login.tmpl", data)
+}
+
 func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Display user login form")
+	var form userLoginForm
+	err := app.decodePostForm(r, &form)
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	form.CheckField(validator.NotBlank(form.Email), "email", "This field cannot be blank")
+	form.CheckField(validator.NotBlank(form.Password), "password", "This field cannot be blank")
+	form.CheckField(validator.Matches(form.Email, validator.EmailEx), "email", "This field must be valid email address")
+
+	if !form.Valid() {
+		data := app.newTemplateData(r)
+		data.Form = form
+		app.render(w, r, http.StatusUnprocessableEntity, "login.tmpl", data)
+		return
+	}
+
+	id, err := app.users.Authenticate(form.Email, form.Password)
+	if err != nil {
+		if errors.Is(err, models.ErrInvalidCredentials) {
+			form.AddNonFieldError("Email or password is incorrect")
+			data := app.newTemplateData(r)
+			data.Form = form
+			app.render(w, r, http.StatusUnprocessableEntity, "login.tmpl", data)
+		} else {
+			app.serverError(w, r, err)
+		}
+		return
+	}
+
+	err = app.sessionManger.RenewToken(r.Context())
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	app.sessionManger.Put(r.Context(), "authenticatedUserID", id)
+	http.Redirect(w, r, "/glyst/create", http.StatusSeeOther)
 }
 
 func (app *application) userLogoutPost(w http.ResponseWriter, r *http.Request) {

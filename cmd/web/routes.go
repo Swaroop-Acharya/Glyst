@@ -18,7 +18,7 @@ func (app *application) routes() http.Handler {
 	// Create a new middleware chain containing the middleware specific to our
 	// dynamic application routes. For now, this chain will only contain the
 	// LoadAndSave session middleware but we'll add more to it later.
-	dynamic := alice.New(app.sessonManger.LoadAndSave)
+	dynamic := alice.New(app.sessionManger.LoadAndSave)
 
 	// Update these routes to use the new dynamic middleware chain followed by
 	// the appropriate handler function. Note that because the alice ThenFunc()
@@ -31,8 +31,9 @@ func (app *application) routes() http.Handler {
 
 	mux.Handle("GET /user/signup", dynamic.ThenFunc(app.userSignup))
 	mux.Handle("POST /user/signup", dynamic.ThenFunc(app.userSignupPost))
-	mux.Handle("GET /user/login", dynamic.ThenFunc(app.userLoginPost))
-	mux.Handle("POST /user/login", dynamic.ThenFunc(app.userLogoutPost))
+	mux.Handle("GET /user/login", dynamic.ThenFunc(app.userLogin))
+	mux.Handle("POST /user/login", dynamic.ThenFunc(app.userLoginPost))
+	mux.Handle("POST /user/logout", dynamic.ThenFunc(app.userLogoutPost))
 
 	// Create a middleware chain containing our 'standard' middleware
 	// which will be used for every request our application receives.
