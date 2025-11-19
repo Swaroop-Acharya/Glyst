@@ -1,10 +1,11 @@
 package main
 
 import (
-	"glyst/internal/models"
 	"html/template"
 	"path/filepath"
 	"time"
+
+	"glyst/internal/models"
 )
 
 // Define a templateData type to act as the holding structure for
@@ -12,11 +13,13 @@ import (
 // At the moment it only contains one field, but we'll add more
 // to it as the build progresses.
 type templateData struct {
-	CurrentYear int
-	Glyst       models.Glyst
-	Glysts      []models.Glyst
-	Form any
-	Flash string
+	CurrentYear     int
+	Glyst           models.Glyst
+	Glysts          []models.Glyst
+	Form            any
+	Flash           string
+	IsAuthenticated bool
+	CSRFToken string
 }
 
 func humanDate(t time.Time) string {
@@ -36,7 +39,6 @@ func newTemplateCache() (map[string]*template.Template, error) {
 	// us a slice of all the filepaths for our application 'page' templates
 	// like: [ui/html/pages/home.tmpl ui/html/pages/view.tmpl]
 	pages, err := filepath.Glob("./ui/html/pages/*.tmpl")
-
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +48,7 @@ func newTemplateCache() (map[string]*template.Template, error) {
 		// Extract the file name (like 'home.tmpl') from the full filepath
 		// and assign it to the name variable.
 		name := filepath.Base(page)
-		
+
 		// Create a new template set, register functions first, then parse files.
 		// Parse the files into a template set.
 		ts, err := template.New(name).Funcs(functions).ParseFiles("./ui/html/base.tmpl")
