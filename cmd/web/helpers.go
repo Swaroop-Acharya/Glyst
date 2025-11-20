@@ -96,12 +96,17 @@ func (app *application) newTemplateData(r *http.Request) templateData {
 	return templateData{
 		CurrentYear: time.Now().Year(),
 		// Add the flash message to the template Data, if one exists.
-		Flash: app.sessionManger.PopString(r.Context(), "flash"),
+		Flash:           app.sessionManger.PopString(r.Context(), "flash"),
 		IsAuthenticated: app.isAuthenticated(r),
-		CSRFToken: nosurf.Token(r),
+		CSRFToken:       nosurf.Token(r),
 	}
 }
 
 func (app *application) isAuthenticated(r *http.Request) bool {
-	return app.sessionManger.Exists(r.Context(), "authenticatedUserID")
+	isAuthenticated, ok := r.Context().Value(isAuthenticatedContextKey).(bool)
+
+	if !ok {
+		return false
+	}
+	return isAuthenticated
 }
