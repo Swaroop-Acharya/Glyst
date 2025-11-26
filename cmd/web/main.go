@@ -20,11 +20,11 @@ import (
 
 type application struct {
 	logger        *slog.Logger
-	glysts        *models.GlystModel
-	users         *models.UserModel
+	glysts        models.GlystModelInterface
+	users         models.UserModelInterface
 	templateCache map[string]*template.Template
 	formDecoder   *form.Decoder
-	sessionManger  *scs.SessionManager
+	sessionManger *scs.SessionManager
 }
 
 func openDB(dsn string) (*sql.DB, error) {
@@ -84,10 +84,10 @@ func main() {
 	app := &application{
 		logger:        logger,
 		glysts:        &models.GlystModel{DB: db},
-		users: &models.UserModel{DB:db},
+		users:         &models.UserModel{DB: db},
 		templateCache: templateCache,
 		formDecoder:   formDecoder,
-		sessionManger:  sessionManger,
+		sessionManger: sessionManger,
 	}
 
 	// Print a log message to say that the server is starting.
