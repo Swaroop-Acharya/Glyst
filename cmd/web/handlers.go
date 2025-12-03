@@ -135,7 +135,6 @@ func (app *application) userSignup(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
-	println(">>>>> User signupPost reached")	
 	var form userSignupForm
 
 	err := app.decodePostForm(r, &form)

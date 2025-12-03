@@ -85,21 +85,7 @@ func TestUserSignup(t *testing.T) {
 	defer ts.Close()
 
 	_, _, body := ts.get(t, "/user/signup")
-
-	u, _ := url.Parse(ts.URL)
-	cookies := ts.Client().Jar.Cookies(u)
-
-	csrfCookie := ""
-	for _, c := range cookies {
-		if c.Name == "csrf_token" {
-			csrfCookie = c.Value
-		}
-	}
-
-	validCSRFToken := extractCSRFToken(t, body)
-
-	t.Log("COOKIE:", csrfCookie)
-	t.Log("FORM TOKEN:", validCSRFToken)
+   validCSRFToken := extractCSRFToken(t, body)   
 
 	const (
 		validName     = "Bob"
@@ -196,7 +182,7 @@ func TestUserSignup(t *testing.T) {
 			form.Add("email", tt.userEmail)
 			form.Add("password", tt.userPassword)
 			form.Add("csrf_token", tt.csrfToken)
-			code, _, body := ts.postForm(t, "/user/signup", form)
+			code, _, body := ts.postFormV2(t, "/user/signup", form, ts.URL+"/user/signup")
 
 			assert.Equal(t, code, tt.wantCode)
 			if tt.wantFormTag != "" {

@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -50,7 +51,7 @@ func newTestApplication(t *testing.T) *application {
 
 	sessionManager := scs.New()
 	sessionManager.Lifetime = 12 * time.Hour
-	sessionManager.Cookie.Secure = true 
+	sessionManager.Cookie.Secure = true
 
 	return &application{
 		logger:        slog.New(slog.DiscardHandler),
@@ -119,5 +120,33 @@ func (ts *testServer) postForm(t *testing.T, urlPath string, form url.Values) (i
 
 	body = bytes.TrimSpace(body)
 	// Return the response status, headers and body.
+	return rs.StatusCode, rs.Header, string(body)
+}
+
+func (ts *testServer) postFormV2(t *testing.T, urlPath string, form url.Values, referer string) (int, http.Header, string) {
+	client := ts.Client()
+
+	req, err := http.NewRequest(http.MethodPost, ts.URL+urlPath, strings.NewReader(form.Encode()))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req.Header.Add("Origin", ts.URL)
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	if referer != "" {
+		req.Header.Add("Referer", referer)
+	}
+	rs, err := client.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer rs.Body.Close()
+	body, err := io.ReadAll(rs.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	body = bytes.TrimSpace(body)
 	return rs.StatusCode, rs.Header, string(body)
 }
