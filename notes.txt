@@ -1,2 +1,7 @@
 Resource:
 https://www.alexedwards.net/blog/which-go-router-should-i-use
+
+
+Running test:
+go test -v ./...
+go test -v -short ./... - Long running tests.

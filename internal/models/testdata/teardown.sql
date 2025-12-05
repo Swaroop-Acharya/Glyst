@@ -1,2 +1,4 @@
-DROP TABLE users;
-DROP TABLE glysts;
+DROP TABLE IF EXISTS glysts;
+DROP TABLE IF EXISTS users;
+
+
