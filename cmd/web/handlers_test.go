@@ -85,7 +85,7 @@ func TestUserSignup(t *testing.T) {
 	defer ts.Close()
 
 	_, _, body := ts.get(t, "/user/signup")
-   validCSRFToken := extractCSRFToken(t, body)   
+	validCSRFToken := extractCSRFToken(t, body)
 
 	const (
 		validName     = "Bob"
@@ -190,4 +190,16 @@ func TestUserSignup(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGlystCreate(t *testing.T) {
+	app := newTestApplication(t)
+	ts := newTestServer(t, app.routes())
+	defer ts.Close()
+
+	t.Run("Unauthenticated", func(t *testing.T) {
+		code, headers, _ := ts.get(t, "/glyst/create")
+		assert.Equal(t, code, http.StatusSeeOther)
+		assert.Equal(t,headers.Get("Location"), "/user/login")
+	})
 }
