@@ -241,6 +241,11 @@ func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.sessionManger.Put(r.Context(), "authenticatedUserID", id)
+	path := app.sessionManger.PopString(r.Context(), "redirectPathAfterLogin")
+	if path != "" {
+		http.Redirect(w, r, path, http.StatusSeeOther)
+		return
+	}
 	http.Redirect(w, r, "/glyst/create", http.StatusSeeOther)
 }
 
