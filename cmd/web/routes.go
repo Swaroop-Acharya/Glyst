@@ -46,6 +46,7 @@ func (app *application) routes() http.Handler {
 	// middleware chain which includes the requireAuthentication middleware.
 	protected := dynamic.Append(app.requireAuthentication)
 
+	mux.Handle("GET /account/view", protected.ThenFunc(app.accountView))
 	mux.Handle("GET /glyst/create", protected.ThenFunc(app.glystCreate))
 	mux.Handle("POST /glyst/create", protected.ThenFunc(app.glystCreatePost))
 	mux.Handle("POST /user/logout", protected.ThenFunc(app.userLogoutPost))
