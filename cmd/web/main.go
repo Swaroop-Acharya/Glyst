@@ -25,6 +25,7 @@ type application struct {
 	templateCache map[string]*template.Template
 	formDecoder   *form.Decoder
 	sessionManger *scs.SessionManager
+	debug         bool
 }
 
 func openDB(dsn string) (*sql.DB, error) {
@@ -45,6 +46,7 @@ func openDB(dsn string) (*sql.DB, error) {
 func main() {
 	addr := flag.String("addr", ":4000", "HTTP network address")
 	dsn := flag.String("dsn", "web:pass@tcp(localhost:3306)/glyst?parseTime=true", "MySQL data source name")
+	debug := flag.Bool("debug", false, "Debug mode")
 	flag.Parse()
 
 	// Use the slog.New() function to initialize a new structured logger, which
@@ -88,6 +90,7 @@ func main() {
 		templateCache: templateCache,
 		formDecoder:   formDecoder,
 		sessionManger: sessionManger,
+		debug:         *debug,
 	}
 
 	// Print a log message to say that the server is starting.
