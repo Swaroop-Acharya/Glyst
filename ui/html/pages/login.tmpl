@@ -1,31 +1,43 @@
 {{define "title"}}Login{{end}}
 {{define "main"}}
-<form action='/user/login' method='POST' novalidate>
-
-<!-- Include the CSRF token -->
-<input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
-<!-- Notice that here we are looping over the NonFieldErrors and displaying
-them, if any exist -->
-{{range .Form.NonFieldErrors}}
-<div class='error'>{{.}}</div>
-{{end}}
-<div>
-<label>Email:</label>
-{{with .Form.FieldErrors.email}}
-<label class='error'>{{.}}</label>
-{{end}}
-<input type='email' name='email' value='{{.Form.Email}}'>
+<div class="auth-card">
+    <div class="auth-header">
+        <h2>Welcome back</h2>
+        <p>Login to manage your glysts.</p>
+    </div>
+    <form action='/user/login' method='POST' novalidate>
+        <!-- Include the CSRF token -->
+        <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
+        <!-- Loop over the NonFieldErrors and display them -->
+        {{range .Form.NonFieldErrors}}
+        <div class='error'>{{.}}</div>
+        {{end}}
+        <div>
+            <label>Email:</label>
+            {{with .Form.FieldErrors.email}}
+            <label class='error'>{{.}}</label>
+            {{end}}
+            <input type='email' name='email' value='{{.Form.Email}}' autocomplete="username">
+        </div>
+        <div>
+            <label>Password:</label>
+            {{with .Form.FieldErrors.password}}
+            <label class='error'>{{.}}</label>
+            {{end}}
+            <div class="password-field">
+                <input type='password' name='password' id='login-password' autocomplete="current-password">
+                <button type="button" class="toggle-password" data-target="login-password" aria-label="Show password">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div>
+            <input type='submit' value='Login'>
+        </div>
+    </form>
 </div>
-<div>
-<label>Password:</label>
-{{with .Form.FieldErrors.password}}
-<label class='error'>{{.}}</label>
-{{end}}
-<input type='password' name='password'>
-</div>
-<div>
-<input type='submit' value='Login'>
-</div>
-</form>
 {{end}}
 

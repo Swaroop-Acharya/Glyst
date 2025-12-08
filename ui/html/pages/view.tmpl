@@ -1,16 +1,18 @@
 {{define "title"}}Glyst #{{.Glyst.ID}}{{end}}
 {{define "main"}}
 {{with .Glyst}}
-<div class='Glyst'>
-<div class='metadata'>
-<strong>{{.Title}}</strong>
-<span>#{{.ID}}</span>
-</div>
-<pre><code>{{.Content}}</code></pre>
-<div class='metadata'>
-<time>Created: {{humanDate .Created}}</time>
-<time>Expires: {{humanDate .Expires}}</time>
-</div>
+<div class="glyst-view">
+    <div class="glyst-meta">
+        <div class="glyst-title">{{.Title}}</div>
+        <div class="glyst-id">#{{.ID}}</div>
+    </div>
+    <div class="glyst-code">
+        <pre><code>{{.Content}}</code></pre>
+    </div>
+    <div class="glyst-dates">
+        <time>Created: {{humanDate .Created}}</time>
+        <time>Expires: {{humanDate .Expires}}</time>
+    </div>
 </div>
 {{end}}
 {{end}}

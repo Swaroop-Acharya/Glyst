@@ -129,7 +129,7 @@ func (app *application) glystView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Use the SnippetModel's Get() method to retrieve the data for a
+	// Use the GlystModel's Get() method to retrieve the data for a
 	// specific record based on its ID. If no matching record is found,
 	// return a 404 Not Found response.
 	glyst, err := app.glysts.Get(id)

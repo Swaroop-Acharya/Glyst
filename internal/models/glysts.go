@@ -59,11 +59,10 @@ func (m *GlystModel) Insert(title string, content string, expires int) (int, err
 	return int(id), nil
 }
 
-// This will return a specific snippet based on its id
+// Get: This will return a specific snippet based on its id
 func (m *GlystModel) Get(id int) (Glyst, error) {
 	stmt := `SELECT id, title, content, created, expires FROM glysts
 	where expires > UTC_TIMESTAMP() and id = ?`
-
 	var g Glyst
 	err := m.DB.QueryRow(stmt, id).Scan(&g.ID, &g.Title, &g.Content, &g.Created, &g.Expires)
 	if err != nil {
@@ -77,7 +76,7 @@ func (m *GlystModel) Get(id int) (Glyst, error) {
 	return g, nil
 }
 
-// This will return the 10 most recently created snippets.
+// Latest: This will return the 10 most recently created snippets.
 func (m *GlystModel) Latest() ([]Glyst, error) {
 	// Write the SQL statement we want to execute.
 	stmt := `SELECT id, title, content, created, expires FROM glysts
