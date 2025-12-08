@@ -28,6 +28,13 @@ type application struct {
 	debug         bool
 }
 
+func envOrDefault(key, fallback string) string {
+	if v, ok := os.LookupEnv(key); ok && v != "" {
+		return v
+	}
+	return fallback
+}
+
 func openDB(dsn string) (*sql.DB, error) {
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
@@ -44,8 +51,11 @@ func openDB(dsn string) (*sql.DB, error) {
 }
 
 func main() {
-	addr := flag.String("addr", ":4000", "HTTP network address")
-	dsn := flag.String("dsn", "web:pass@tcp(localhost:3306)/glyst?parseTime=true", "MySQL data source name")
+	defaultPort := envOrDefault("PORT", "4000")
+	addr := flag.String("addr", ":"+defaultPort, "HTTP network address")
+
+	defaultDSN := envOrDefault("DB_DSN", "web:password@tcp(localhost:3306)/glyst?parseTime=true")
+	dsn := flag.String("dsn", defaultDSN, "MySQL data source name")
 	debug := flag.Bool("debug", false, "Debug mode")
 	flag.Parse()
 
@@ -100,6 +110,10 @@ func main() {
 		CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256},
 	}
 
+	// On Render we let the platform terminate TLS, so run plain HTTP there.
+	// Render sets the environment variable RENDER=true.
+	useTLS := os.Getenv("RENDER") == ""
+
 	srv := &http.Server{
 		Addr:         *addr,
 		Handler:      app.routes(),
@@ -110,7 +124,11 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 	}
 
-	err = srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
+	if useTLS {
+		err = srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
+	} else {
+		err = srv.ListenAndServe()
+	}
 	if err != nil {
 		logger.Error("Server error", "err", err.Error())
 		os.Exit(1)

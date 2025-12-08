@@ -1,2 +1,4 @@
 tls/cert.pem
 tls/key.pem
+.env
+glyst-export.sql
